@@ -4,5 +4,5 @@ public enum OrganizationType {
   CLUB,
   COMPANY,
   UNIVERSITY,
-  GOVERNMENT,
+  // GOVERNMENT,
 }

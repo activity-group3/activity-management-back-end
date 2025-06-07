@@ -64,7 +64,7 @@ public class ActivityStatisticsServiceImpl implements ActivityStatisticsService 
     ActivityStatisticsVm statistics = ActivityStatisticsVm.builder()
         .activityId(activity.getId())
         .activityName(activity.getActivityName())
-        .activityCategory(activity.getActivityCategory().name())
+        .activityCategory(activity.getCategory().name())
         .activityStatus(activity.getStatus().name())
         .createdDate(activity.getCreatedDate())
         .startDate(activity.getStartDate())

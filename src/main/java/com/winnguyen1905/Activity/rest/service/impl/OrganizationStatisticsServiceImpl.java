@@ -23,7 +23,7 @@ import com.winnguyen1905.Activity.model.dto.StatisticsFilterDto;
 import com.winnguyen1905.Activity.model.viewmodel.ActivityStatisticsSummaryVm;
 import com.winnguyen1905.Activity.model.viewmodel.OrganizationStatisticsVm;
 import com.winnguyen1905.Activity.persistance.entity.EActivity;
-import com.winnguyen1905.Activity.persistance.entity.EOrganization;
+import com.winnguyen1905.Activity.persistance.entity.EOrganizationAccount;
 import com.winnguyen1905.Activity.persistance.repository.ActivityRepository;
 import com.winnguyen1905.Activity.persistance.repository.FeedbackRepository;
 import com.winnguyen1905.Activity.persistance.repository.OrganizationRepository;
@@ -45,12 +45,12 @@ public class OrganizationStatisticsServiceImpl implements OrganizationStatistics
 
   @Override
   public OrganizationStatisticsVm getOrganizationStatistics(Long organizationId) {
-    Optional<EOrganization> organizationOpt = organizationRepository.findById(organizationId);
+    Optional<EOrganizationAccount> organizationOpt = organizationRepository.findById(organizationId);
     if (!organizationOpt.isPresent()) {
       throw new IllegalArgumentException("Organization not found: " + organizationId);
     }
 
-    EOrganization organization = organizationOpt.get();
+    EOrganizationAccount organization = organizationOpt.get();
 
     OrganizationStatisticsVm statistics = OrganizationStatisticsVm.builder()
         .organizationId(organization.getId())

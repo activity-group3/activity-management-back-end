@@ -58,7 +58,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create-drop # Change this if needed (create, create-drop, validate, none)
+      ddl-auto: create-drop  # Change this if needed (create, create-drop, validate, none)
     show-sql: false
     defer-datasource-initialization: true
   # flyway:

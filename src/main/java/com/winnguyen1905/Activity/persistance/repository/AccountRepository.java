@@ -13,4 +13,6 @@ public interface AccountRepository
     extends JpaRepository<EAccountCredentials, Long>, JpaSpecificationExecutor<EAccountCredentials> {
   Optional<EAccountCredentials> findByIdentifyCode(String identifyCode);
   Optional<EAccountCredentials> findByRefreshToken(String refreshToken);
+  boolean existsByIdentifyCode(String identifyCode);
+  Optional<EAccountCredentials> findByEmail(String email);
 }

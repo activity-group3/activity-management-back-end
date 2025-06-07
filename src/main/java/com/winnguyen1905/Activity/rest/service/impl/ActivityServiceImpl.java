@@ -27,6 +27,7 @@ import com.winnguyen1905.Activity.model.viewmodel.OrganizationVm;
 import com.winnguyen1905.Activity.model.viewmodel.PagedResponse;
 import com.winnguyen1905.Activity.model.viewmodel.ParticipationDetailVm;
 import com.winnguyen1905.Activity.persistance.repository.AccountRepository;
+import com.winnguyen1905.Activity.persistance.repository.ActivityCategoryRepository;
 import com.winnguyen1905.Activity.persistance.repository.ActivityRepository;
 import com.winnguyen1905.Activity.persistance.repository.ActivityScheduleRepository;
 import com.winnguyen1905.Activity.persistance.repository.OrganizationRepository;
@@ -56,6 +57,7 @@ public class ActivityServiceImpl implements ActivityService {
   private final EmailService emailService;
   private final AccountRepository accountRepository;
   private final ActivityRepository activityRepository;
+  private final ActivityCategoryRepository activityCategoryRepository;
   private final OrganizationRepository organizationRepository;
   private final ActivityScheduleRepository activityScheduleRepository;
   private final ParticipationDetailRepository participationDetailRepository;
@@ -74,7 +76,7 @@ public class ActivityServiceImpl implements ActivityService {
         .venue(activityDto.getActivityVenue())
         .capacityLimit(0) // Changed from capacity to capacityLimit
         .capacityLimit(activityDto.getCapacityLimit())
-        .activityCategory(activityDto.getActivityCategory())
+        // .activityCategory(activityDto.getActivityCategory())
         .description(activityDto.getActivityDescription())
         .startDate(activityDto.getStartDate())
         .endDate(activityDto.getEndDate())
@@ -82,7 +84,6 @@ public class ActivityServiceImpl implements ActivityService {
         .imageUrl(activityDto.getImageUrl())
         .shortDescription(activityDto.getShortDescription())
         .tags(activityDto.getTags())
-        .currentParticipants(0)
         .address(activityDto.getAddress())
         .latitude(activityDto.getLatitude())
         .longitude(activityDto.getLongitude())
@@ -91,12 +92,12 @@ public class ActivityServiceImpl implements ActivityService {
         .isApproved(false)
         .likes(0)
         .registrationDeadline(activityDto.getRegistrationDeadline())
-        .activityCategory(activityDto.getActivityCategory())
+        .category(activityCategoryRepository.findById(activityDto.getCategoryId())
+            .orElseThrow(null))
         .description(activityDto.getActivityDescription())
         .organization(this.organizationRepository.findById(accountRequest.id())
             .orElseThrow(() -> new EntityNotFoundException("Not found organization")))
         .attendanceScoreUnit(activityDto.getAttendanceScoreUnit())
-        .createdById(accountRequest.id())
         .build();
 
     activity = activityRepository.save(activity);
@@ -110,10 +111,9 @@ public class ActivityServiceImpl implements ActivityService {
             .activity(activity)
             .startTime(scheduleDto.getStartTime())
             .endTime(scheduleDto.getEndTime())
-            .activityDescription(scheduleDto.getActivityDescription())
+            .description(scheduleDto.getActivityDescription())
             .status(scheduleDto.getStatus())
             .location(scheduleDto.getLocation())
-            .createdBy(accountRequest.username())
             .build();
         schedules.add(schedule);
       }
@@ -139,14 +139,13 @@ public class ActivityServiceImpl implements ActivityService {
     existingActivity.setVenue(activityDto.getActivityVenue());
     existingActivity.setCapacityLimit(activityDto.getCapacityLimit()); // Changed from capacity to capacityLimit
     // existingActivity.setStatus(activityDto.getActivityStatus());
-    existingActivity.setActivityCategory(activityDto.getActivityCategory());
+    existingActivity.setCategory(activityCategoryRepository.findById(activityDto.getCategoryId())
+        .orElseThrow(null));
     existingActivity.setDescription(activityDto.getActivityDescription());
     existingActivity.setAttendanceScoreUnit(activityDto.getAttendanceScoreUnit());
-    existingActivity.setUpdatedById(accountRequest.id());
     existingActivity.setUpdatedDate(Instant.now());
     existingActivity.setShortDescription(activityDto.getShortDescription());
     existingActivity.setTags(activityDto.getTags());
-    existingActivity.setCurrentParticipants(activityDto.getCurrentParticipants());
     existingActivity.setAddress(activityDto.getAddress());
     existingActivity.setLatitude(activityDto.getLatitude());
     existingActivity.setLongitude(activityDto.getLongitude());
@@ -156,7 +155,6 @@ public class ActivityServiceImpl implements ActivityService {
     existingActivity.setIsFeatured(activityDto.getIsFeatured());
     existingActivity.setIsApproved(activityDto.getIsApproved());
     existingActivity.setLikes(activityDto.getLikes());
-    existingActivity.setActivityCategory(activityDto.getActivityCategory());
     existingActivity.setDescription(activityDto.getActivityDescription());
 
     activityRepository.save(existingActivity);
@@ -172,10 +170,9 @@ public class ActivityServiceImpl implements ActivityService {
               .activity(existingActivity)
               .startTime(scheduleDto.getStartTime())
               .endTime(scheduleDto.getEndTime())
-              .activityDescription(scheduleDto.getActivityDescription())
+              .description(scheduleDto.getActivityDescription())
               .status(scheduleDto.getStatus())
               .location(scheduleDto.getLocation())
-              .createdBy(accountRequest.username())
               .build())
           .collect(Collectors.toList());
 
@@ -219,16 +216,15 @@ public class ActivityServiceImpl implements ActivityService {
             .endDate(activity.getEndDate())
             .activityName(activity.getActivityName())
             .description(activity.getDescription())
-        .createdDate(activity.getCreatedDate())
+            .createdDate(activity.getCreatedDate())
 
             .activityVenue(activity.getVenue())
             .startDate(activity.getStartDate())
             .endDate(activity.getEndDate())
             .capacityLimit(activity.getCapacityLimit())
             .activityStatus(activity.getStatus()) // Updated to use getStatus()
-            .activityCategory(activity.getActivityCategory())
+            .activityCategory(activity.getCategory().getName())
             .tags(activity.getTags())
-            .currentParticipants(activity.getCurrentParticipants())
             .address(activity.getAddress())
             .latitude(activity.getLatitude())
             .longitude(activity.getLongitude())
@@ -359,11 +355,9 @@ public class ActivityServiceImpl implements ActivityService {
             .activityName(activity.getActivityName())
             .startTime(schedule.getStartTime())
             .endTime(schedule.getEndTime())
-            .activityDescription(schedule.getActivityDescription())
+            .activityDescription(schedule.getDescription())
             .status(schedule.getStatus())
             .location(schedule.getLocation())
-            .createdBy(schedule.getCreatedBy())
-            .updatedBy(schedule.getUpdatedBy())
             .createdDate(schedule.getCreatedDate())
             .updatedDate(schedule.getUpdatedDate())
             .build())
@@ -386,9 +380,8 @@ public class ActivityServiceImpl implements ActivityService {
             .build())
         .capacityLimit(activity.getCapacityLimit())
         .activityStatus(activity.getStatus()) // Updated to use getStatus()
-        .activityCategory(activity.getActivityCategory())
+        .activityCategory(activity.getCategory().getName())
         .tags(activity.getTags())
-        .currentParticipants(activity.getCurrentParticipants())
         .address(activity.getAddress())
         .latitude(activity.getLatitude())
         .longitude(activity.getLongitude())
@@ -406,21 +399,21 @@ public class ActivityServiceImpl implements ActivityService {
   public ParticipationDetailVm joinActivity(TAccountRequest accountRequest,
       JoinActivityRequest joinActivityRequest) {
     EActivity activity = activityRepository.findById(joinActivityRequest.activityId())
-        .orElseThrow(() -> new EntityNotFoundException("Not found activity"));
+        .orElseThrow(
+            () -> new EntityNotFoundException("Activity not found with id: " + joinActivityRequest.activityId()));
 
     EAccountCredentials account = this.accountRepository.findById(accountRequest.id())
-        .orElseThrow(() -> new EntityNotFoundException("Not found account request"));
-    EParticipationDetail participationDetails = participationDetailRepository.findByStudentIdAndActivityId(
-        accountRequest.id(),
-        joinActivityRequest.activityId()).orElse(null);
-    Boolean x = participationDetailRepository.existsByParticipantIdAndActivityId(account.getId(),
-        joinActivityRequest.activityId());
+        .orElseThrow(() -> new EntityNotFoundException("Account not found with id: " + accountRequest.id()));
 
-    if (x)
+    // Check if already joined using a single query
+    if (participationDetailRepository.existsByParticipantIdAndActivityId(account.getId(),
+        joinActivityRequest.activityId())) {
       throw new ResourceAlreadyExistsException("You have already joined this activity");
+    }
 
-    if (activity.getCurrentParticipants() == activity.getCapacityLimit())
-      throw new BadRequestException("Out of slot");
+    if (activity.getParticipationDetails().size() >= activity.getCapacityLimit()) {
+      throw new BadRequestException("Activity has reached its participant capacity");
+    }
 
     EParticipationDetail participationDetail = EParticipationDetail.builder()
         .participant(account)
@@ -430,7 +423,7 @@ public class ActivityServiceImpl implements ActivityService {
         .registeredAt(Instant.now())
         .build();
 
-    activity.setCurrentParticipants(activity.getCurrentParticipants() + 1);
+    // activity.setCurrentParticipants(activity.getCurrentParticipants() + 1);
     activityRepository.save(activity);
     EParticipationDetail savedParticipationDetail = participationDetailRepository.save(participationDetail);
 
@@ -449,7 +442,7 @@ public class ActivityServiceImpl implements ActivityService {
         .activityId(savedParticipationDetail.getActivity().getId())
         .activityName(savedParticipationDetail.getActivity().getActivityName())
         .participationStatus(savedParticipationDetail.getParticipationStatus())
-        .activityCategory(savedParticipationDetail.getActivity().getActivityCategory())
+        .activityCategory(savedParticipationDetail.getActivity().getCategory().getName())
         .activityStatus(savedParticipationDetail.getActivity().getStatus())
         .activityVenue(savedParticipationDetail.getActivity().getVenue())
         .startDate(savedParticipationDetail.getActivity().getStartDate())
@@ -484,9 +477,8 @@ public class ActivityServiceImpl implements ActivityService {
             .endDate(activity.getEndDate())
             .capacityLimit(activity.getCapacityLimit())
             .activityStatus(activity.getStatus()) // Updated to use getStatus()
-            .activityCategory(activity.getActivityCategory())
+            .activityCategory(activity.getCategory().getName())
             .tags(activity.getTags())
-            .currentParticipants(activity.getCurrentParticipants())
             .address(activity.getAddress())
             .latitude(activity.getLatitude())
             .longitude(activity.getLongitude())
@@ -527,15 +519,14 @@ public class ActivityServiceImpl implements ActivityService {
             .organization(null)
             .activityName(activity.getActivityName())
             .description(activity.getDescription())
-        .createdDate(activity.getCreatedDate())
-        .activityVenue(activity.getVenue())
+            .createdDate(activity.getCreatedDate())
+            .activityVenue(activity.getVenue())
             .startDate(activity.getStartDate())
             .endDate(activity.getEndDate())
             .capacityLimit(activity.getCapacityLimit())
             .activityStatus(activity.getStatus()) // Updated to use getStatus()
-            .activityCategory(activity.getActivityCategory())
+            .activityCategory(activity.getCategory().getName())
             .tags(activity.getTags())
-            .currentParticipants(activity.getCurrentParticipants())
             .address(activity.getAddress())
             .latitude(activity.getLatitude())
             .longitude(activity.getLongitude())

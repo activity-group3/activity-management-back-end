@@ -6,7 +6,7 @@ import com.winnguyen1905.Activity.model.dto.OrganizationSearchRequest;
 import com.winnguyen1905.Activity.model.viewmodel.OrganizationVm;
 import com.winnguyen1905.Activity.model.viewmodel.PagedResponse;
 import com.winnguyen1905.Activity.model.viewmodel.RepresentativeOrganizerVm;
-import com.winnguyen1905.Activity.persistance.entity.EOrganization;
+import com.winnguyen1905.Activity.persistance.entity.EOrganizationAccount;
 import com.winnguyen1905.Activity.persistance.repository.RepresentativeOrganizerRepository;
 import com.winnguyen1905.Activity.persistance.repository.specification.OrganizationSpecification;
 import com.winnguyen1905.Activity.rest.service.OrganizerService;
@@ -34,7 +34,7 @@ public class OrganizerServiceImpl implements OrganizerService {
 
   @Override
   public void updateOrganizer(TAccountRequest accountRequest, OrganizationDto organizerDto) {
-    EOrganization organizer = organizerRepository.findById(organizerDto.id())
+    EOrganizationAccount organizer = organizerRepository.findById(organizerDto.id())
         .orElseThrow(() -> new RuntimeException("Organizer not found with id: " + organizerDto.id()));
 
     organizer.setName(organizerDto.organizationName());
@@ -54,8 +54,8 @@ public class OrganizerServiceImpl implements OrganizerService {
   public PagedResponse<OrganizationVm> getAllOrganizers(OrganizationSearchRequest organizationSearchRequest,
       Pageable pageable) {
 
-    Specification<EOrganization> spec = OrganizationSpecification.search(organizationSearchRequest);
-    Page<EOrganization> page = organizerRepository.findAll(spec, pageable);
+    Specification<EOrganizationAccount> spec = OrganizationSpecification.search(organizationSearchRequest);
+    Page<EOrganizationAccount> page = organizerRepository.findAll(spec, pageable);
 
     List<OrganizationVm> content = page.getContent().stream()
         .map(this::mapToViewModel)
@@ -72,7 +72,7 @@ public class OrganizerServiceImpl implements OrganizerService {
 
   @Override
   public OrganizationVm getOrganizerById(Long id) {
-    EOrganization organizer = organizerRepository.findById(id)
+    EOrganizationAccount organizer = organizerRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Organizer not found with id: " + id));
 
     return mapToViewModel(organizer);
@@ -140,7 +140,7 @@ public class OrganizerServiceImpl implements OrganizerService {
   // .toList();
   // }
 
-  private OrganizationVm mapToViewModel(EOrganization organizer) {
+  private OrganizationVm mapToViewModel(EOrganizationAccount organizer) {
     return OrganizationVm.builder()
         .id(organizer.getId())
         .organizationName(organizer.getName())

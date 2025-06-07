@@ -39,12 +39,15 @@ public class ENotification {
   @ManyToOne
   @JoinColumn(name = "receiver_id")
   private EAccountCredentials receiver;
-
+ 
   @Column(name = "title")
   private String title;
 
   @Column(name = "is_read")
   private Boolean isRead;
+
+  @Column(name = "is_deleted")
+  private Boolean isDeleted;
 
   @ManyToOne
   @JoinColumn(name = "sender_id", nullable = true)

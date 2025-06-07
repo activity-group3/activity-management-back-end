@@ -48,21 +48,30 @@ public class EParticipationDetail {
   private EActivity activity;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "aattendance_status")
+  @Column(name = "attendance_status")
   private ParticipationStatus participationStatus;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "attendance_role")
+  private ParticipationRole participationRole;
+
+  @CreationTimestamp
+  @Column(name = "registered_at", updatable = false, columnDefinition = "DATETIME(6)", nullable = false)
+  private Instant registeredAt;
+
+  //
+  @Column(name = "processed_at")
+  private Instant processedAt;
+
+  @Column(name = "processed_by")
+  private Long processedBy;
+
+  @Column(name = "rejection_reason")
+  private String rejectionReason;
+
+  @Column(name = "verified_note")
+  private String verifiedNote;
 
   @OneToMany(mappedBy = "participation")
   private List<EFeedback> feedbacks;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "attendee_role")
-  private ParticipationRole participationRole;
-
-  @JsonIgnore
-  @Column(name = "created_by", nullable = true)
-  private String createdBy;
-
-  @CreationTimestamp
-  @Column(name = "registered_at", updatable = false, columnDefinition = "DATETIME(6)")
-  private Instant registeredAt;
 }

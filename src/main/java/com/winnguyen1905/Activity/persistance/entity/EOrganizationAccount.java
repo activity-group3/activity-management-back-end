@@ -16,14 +16,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,42 +32,32 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "organization")
-public class EOrganization {
-  @Id
-  // @GeneratedValue(strategy = GenerationType.AUTO)
-  // @Column(name = "id", updatable = false, nullable = false)
-  protected Long id;
-
-  @Column(name = "name")
+@PrimaryKeyJoinColumn(name = "id")
+public class EOrganizationAccount extends EAccountCredentials {
+  @Column(name = "org_name")
   private String name;
 
-  @Column(name = "phone")
+  @Column(name = "org_phone")
   private String phone;
 
-  @Column(name = "email")
+  @Column(name = "org_email")
   private String email;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "type")
+  @Column(name = "org_type")
   private OrganizationType type;
 
-  @UpdateTimestamp
-  @Column(name = "updated_date", updatable = true)
-  private Instant updatedDate;
+  @Column(name = "org_description")
+  private String description;
+
+  public String getOrganizationName() {
+    return name;
+  }
+
+  public OrganizationType getOrganizationType() {
+    return type;
+  }
 
   @OneToMany(mappedBy = "organization")
   private List<EActivity> activities;
-
-  @Column(name = "description")
-  private String description;
-
-  @MapsId
-  @OneToOne
-  @JoinColumn(name = "id")
-  private EAccountCredentials account;
-
-  @PrePersist
-  public void prePersist() {
-    this.updatedDate = Instant.now();
-  }
 }

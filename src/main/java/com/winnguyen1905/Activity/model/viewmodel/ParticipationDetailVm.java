@@ -19,7 +19,7 @@ public record ParticipationDetailVm(
     String participantName,
     Long activityId,
     String activityName,
-    ActivityCategory activityCategory,
+    String activityCategory,
     MajorType major,
     String activityVenue,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant startDate,
@@ -37,7 +37,7 @@ public record ParticipationDetailVm(
       String participantName,
       Long activityId,
       String activityName,
-      ActivityCategory activityCategory,
+      String activityCategory,
       MajorType major,
       String activityVenue,
       Instant startDate,
@@ -52,7 +52,7 @@ public record ParticipationDetailVm(
     this.participantName = participantName;
     this.activityId = activityId;
     this.activityName = activityName;
-    this.activityCategory = activityCategory;
+    this.activityCategory = activityCategory; 
     this.major = major;
     this.activityVenue = activityVenue;
     this.startDate = startDate;

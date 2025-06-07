@@ -70,7 +70,6 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
-
 -- -----------------------------------------------------
 -- Table `activity`.`activity`
 -- -----------------------------------------------------
@@ -83,6 +82,8 @@ CREATE TABLE IF NOT EXISTS `activity`.`activity` (
   `latitude` DOUBLE NULL DEFAULT NULL,
   `likes` INT NULL DEFAULT NULL,
   `longitude` DOUBLE NULL DEFAULT NULL,
+  `contributor_limit` INT NULL DEFAULT NULL,
+  
   `max_attendees` INT NULL DEFAULT NULL,
   `created_by_id` BIGINT NULL DEFAULT NULL,
   `created_date` DATETIME(6) NULL DEFAULT NULL,

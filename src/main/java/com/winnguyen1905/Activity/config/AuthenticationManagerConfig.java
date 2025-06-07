@@ -61,8 +61,6 @@ public class AuthenticationManagerConfig {
           .map(user -> CustomUserDetails.builder()
               .id(user.getId())
               .role(user.getRole())
-              .email(user.getEmail())
-              .phone(user.getPhone())
               .username(user.getIdentifyCode())
               .password(user.getPassword())
               .build())

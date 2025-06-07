@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.winnguyen1905.Activity.common.constant.AccountRole;
 import com.winnguyen1905.Activity.common.constant.MajorType;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,10 +17,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,44 +29,45 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@Entity
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "account")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class EAccountCredentials {
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", updatable = false, nullable = false)
   protected Long id;
 
-  @Column(name = "full_name")
-  private String fullName;
+  @Column(name = "password", nullable = false)
+  protected String password;
 
-  @Column(name = "identify_code")
-  private String identifyCode;
+  @Column(name = "status", nullable = false)
+  protected Boolean isActive;
 
-  @Column(name = "password")
-  private String password;
+  @Column(name = "last_token", length = 1024)
+  protected String refreshToken;
 
-  @Column(name = "status")
-  private Boolean isActive;
+  @Column(name = "identify_code", unique = true, nullable = false, updatable = false)
+  protected String identifyCode;
 
-  @Column(name = "email")
-  private String email;
+  @Column(name = "role_code", nullable = false)
+  @Enumerated(EnumType.STRING)
+  protected AccountRole role;
+
+  @Column(name = "email", nullable = false)
+  protected String email;
 
   @Column(name = "phone")
-  private String phone;
+  protected String phone;
 
-  @Column(name = "refresh_token", length = 1024)
-  private String refreshToken;
+  @Column(name = "full_name")
+  protected String fullName;
 
-  @Column(name = "role")
+  @Column(name = "major")
   @Enumerated(EnumType.STRING)
-  private AccountRole role;
-
-  @OneToOne(cascade = CascadeType.ALL, mappedBy = "account")
-  private EOrganization organization;
+  protected MajorType major;
 
   @OneToMany(mappedBy = "participant")
   private List<EParticipationDetail> participationDetails;
@@ -82,26 +81,20 @@ public class EAccountCredentials {
   @OneToMany(mappedBy = "reporter")
   private List<EReport> reports;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "major_type")
-  private MajorType major;
-
-  // @OneToMany(mappedBy = "student")
-  // private List<EStudentSemesterDetail> studentSemesterDetails;
+  @JsonIgnore
+  @Column(name = "created_by")
+  protected Long createdBy;
 
   @JsonIgnore
-  @Column(name = "created_by", nullable = true)
-  private String createdBy;
-
-  @JsonIgnore
-  @Column(name = "updated_by", nullable = true)
-  private String updatedBy;
+  @Column(name = "updated_by")
+  protected Long updatedBy;
 
   @CreationTimestamp
   @Column(name = "created_date", updatable = false)
-  private Instant createdDate;
+  protected Instant createdDate;
 
   @UpdateTimestamp
-  @Column(name = "updated_date", updatable = true)
-  private Instant updatedDate;
+  @Column(name = "updated_date")
+  protected Instant updatedDate;
+
 }

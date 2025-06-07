@@ -3,13 +3,13 @@ package com.winnguyen1905.Activity.persistance.repository.specification;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.winnguyen1905.Activity.model.dto.OrganizationSearchRequest;
-import com.winnguyen1905.Activity.persistance.entity.EOrganization;
+import com.winnguyen1905.Activity.persistance.entity.EOrganizationAccount;
 
 import jakarta.persistence.criteria.Predicate;
 
 public class OrganizationSpecification {
 
-  public static Specification<EOrganization> search(OrganizationSearchRequest request) {
+  public static Specification<EOrganizationAccount> search(OrganizationSearchRequest request) {
     return (root, query, cb) -> {
       Predicate predicate = cb.conjunction();
 

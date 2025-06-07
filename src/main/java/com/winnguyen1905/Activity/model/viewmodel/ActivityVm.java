@@ -26,7 +26,7 @@ public class ActivityVm implements AbstractModel {
   private Integer capacityLimit;
   private ActivityStatus activityStatus;
   private String activityType;
-  private ActivityCategory activityCategory;
+  private String activityCategory;
   private String activityDescription;
   private String activityImage;
   private String activityLink;

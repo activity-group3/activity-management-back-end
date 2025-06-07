@@ -41,10 +41,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Table(name = "activity")
 public class EActivity {
-  @Version
-  @Column(name = "version")
-  private Long version;
-
   @Id
   // @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "id")
@@ -63,22 +59,19 @@ public class EActivity {
   private String shortDescription;
 
   @ElementCollection
-  @Column(name = "tags")
+  @Column(name = "tags", table = "activity_tag")
   private List<String> tags;
 
   @ManyToOne
   @JoinColumn(name = "organization_id")
-  private EOrganization organization;
+  private EOrganizationAccount organization;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "category")
-  private ActivityCategory activityCategory;
+  @ManyToOne
+  @JoinColumn(name = "category_id")
+  private EActivityCategory category;
 
   @Column(name = "max_attendees")
   private Integer capacityLimit;
-
-  @Column(name = "current_participants")
-  private Integer currentParticipants;
 
   @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL)
   private List<EParticipationDetail> participationDetails;
@@ -123,20 +116,12 @@ public class EActivity {
   @Column(name = "likes")
   private Integer likes;
 
-  @Column(name = "registration_deadline ", updatable = true)
+  @Column(name = "registration_deadline", updatable = true)
   private Instant registrationDeadline;
 
   @Column(name = "status")
   @Enumerated(EnumType.STRING)
   private ActivityStatus status;
-
-  @JsonIgnore
-  @Column(name = "created_by_id", nullable = true)
-  private Long createdById;
-
-  @JsonIgnore
-  @Column(name = "updated_by_id", nullable = true)
-  private Long updatedById;
 
   @CreationTimestamp
   @Column(name = "created_date", updatable = false)

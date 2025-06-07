@@ -14,9 +14,9 @@ import lombok.Builder;
 public record AdminUpdateAccount(
     @NotBlank(message = "Full name is required") @Size(max = 100, message = "Full name must be less than 100 characters") String fullName,
     String email,
-  String phone,
-  MajorType major,
-  AccountRole role,
+    String phone,
+    MajorType major,
+    AccountRole role,
 
     Boolean isActive) implements AbstractModel {
   @Builder

@@ -66,8 +66,8 @@ BEGIN
     SELECT 
         role,
         COUNT(*) as total_accounts,
-        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_accounts,
-        SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_accounts,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as active_accounts,
+        SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as inactive_accounts,
         COUNT(DISTINCT major_type) as unique_majors
     FROM account
     GROUP BY role;
@@ -78,31 +78,33 @@ BEGIN
     SELECT 
         major_type,
         COUNT(*) as total_students,
-        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_students,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as active_students,
         COUNT(DISTINCT identify_code) as unique_identities
     FROM account
     WHERE role = 'STUDENT'
     GROUP BY major_type;
 END//
-
+ 
 CREATE PROCEDURE get_account_participation_stats(
-    IN p_start_date TIMESTAMP,
-    IN p_end_date TIMESTAMP
+    IN p_start_date TIMESTAMP, 
+    IN p_end_date TIMESTAMP 
+    -- 2025-02-20 14:30:00
+    -- 2025-07-05 14:30:00
 )
 BEGIN
     SELECT 
         a.role,
         COUNT(DISTINCT a.id) as total_accounts,
         COUNT(DISTINCT pd.id) as total_participations,
-        COUNT(DISTINCT CASE WHEN pd.created_date BETWEEN p_start_date AND p_end_date THEN pd.id END) as new_participations,
+        COUNT(DISTINCT CASE WHEN pd.registered_at BETWEEN p_start_date AND p_end_date THEN pd.id END) as new_participations,
         COALESCE(AVG(pd_count.participation_count), 0) as avg_participations_per_account
     FROM account a
-    LEFT JOIN participation_detail pd ON a.id = pd.participant_id
+    LEFT JOIN attendance pd ON a.id = pd.attendee_id
     LEFT JOIN (
-        SELECT participant_id, COUNT(*) as participation_count
-        FROM participation_detail
-        GROUP BY participant_id
-    ) pd_count ON a.id = pd_count.participant_id
+        SELECT attendee_id, COUNT(*) as participation_count
+        FROM attendance
+        GROUP BY attendee_id 
+    ) pd_count ON a.id = pd_count.attendee_id
     GROUP BY a.role;
 END//
 
@@ -114,10 +116,10 @@ BEGIN
         COUNT(DISTINCT pd.id) as total_participations,
         COUNT(DISTINCT n.id) as total_notifications,
         COUNT(DISTINCT r.id) as total_reports,
-        COUNT(DISTINCT CASE WHEN pd.created_date >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 30 DAY) THEN pd.id END) as recent_participations,
+        COUNT(DISTINCT CASE WHEN pd.registered_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 30 DAY) THEN pd.id END) as recent_participations,
         COUNT(DISTINCT CASE WHEN n.created_date >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 30 DAY) THEN n.id END) as recent_notifications
     FROM account a
-    LEFT JOIN participation_detail pd ON a.id = pd.participant_id
+    LEFT JOIN attendance pd ON a.id = pd.attendee_id
     LEFT JOIN notification n ON a.id = n.receiver_id
     LEFT JOIN report r ON a.id = r.reporter_id
     WHERE a.id = p_account_id;
@@ -130,7 +132,7 @@ FOR EACH ROW
 BEGIN
     IF NEW.email NOT REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$' THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid email format';
+        SET MESSAGE_TEXT = 'Message From Trigger: Invalid email format';
     END IF;
 END//
 
@@ -140,7 +142,7 @@ FOR EACH ROW
 BEGIN
     IF NEW.phone NOT REGEXP '^[0-9]{10,15}$' THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid phone number format';
+        SET MESSAGE_TEXT = 'Message From Trigger: Invalid phone number format';
     END IF;
 END//
 
@@ -150,7 +152,7 @@ FOR EACH ROW
 BEGIN
     IF NEW.identify_code NOT REGEXP '^[A-Za-z0-9]{8,20}$' THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid identify code format';
+        SET MESSAGE_TEXT = 'Message From Trigger: Invalid identify code format';
     END IF;
 END//
 
@@ -162,7 +164,7 @@ BEGIN
     SELECT COUNT(*) INTO email_count FROM account WHERE email = NEW.email;
     IF email_count > 0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Email already exists';
+        SET MESSAGE_TEXT = 'Message From Trigger: Email already exists';
     END IF;
 END//
 
@@ -174,7 +176,7 @@ BEGIN
     SELECT COUNT(*) INTO identify_count FROM account WHERE identify_code = NEW.identify_code;
     IF identify_count > 0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Identify code already exists';
+        SET MESSAGE_TEXT = 'Message From Trigger: Identify code already exists';
     END IF;
 END//
 
@@ -184,17 +186,18 @@ FOR EACH ROW
 BEGIN
     IF NEW.role = 'STUDENT' AND NEW.major_type IS NULL THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Student accounts must have a major type';
+        SET MESSAGE_TEXT = 'Message From Trigger: Student accounts must have a major type';
     END IF;
     
     IF NEW.role = 'ORGANIZATION' AND NEW.major_type IS NOT NULL THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Organization accounts cannot have a major type';
+        SET MESSAGE_TEXT = 'Message From Trigger: Organization accounts cannot have a major type';
     END IF;
 END//
 
 -- Activity Management Stored Procedures and Triggers
-CREATE PROCEDURE update_activity_status()
+
+CREATE PROCEDURE update_activity_status() -- SET SQL_SAFE_UPDATES = 0;
 BEGIN
     UPDATE activity 
     SET status = 'IN_PROGRESS'
@@ -275,12 +278,12 @@ FOR EACH ROW
 BEGIN
     IF NEW.start_date >= NEW.end_date THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Start date must be before end date';
+        SET MESSAGE_TEXT = 'Message From Trigger: Start date must be before end date';
     END IF;
     
     IF NEW.registration_deadline >= NEW.start_date THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Registration deadline must be before start date';
+        SET MESSAGE_TEXT = 'Message From Trigger: Registration deadline must be before start date';
     END IF;
 END//
 
@@ -364,7 +367,7 @@ FOR EACH ROW
 BEGIN
     IF NEW.start_time >= NEW.end_time THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'End time must be after start time';
+        SET MESSAGE_TEXT = 'Message From Trigger:  End time must be after start time';
     END IF;
 END//
 
@@ -385,7 +388,7 @@ BEGIN
     
     IF overlap_count > 0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Schedule overlaps with existing schedule for this activity';
+        SET MESSAGE_TEXT = ' Message From Trigger: Schedule overlaps with existing schedule for this activity';
     END IF;
 END//
 
@@ -500,7 +503,7 @@ BEGIN
     
     IF duplicate_count > 0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Duplicate notification detected within the last hour';
+        SET MESSAGE_TEXT = 'Message From Trigger:  Duplicate notification detected within the last hour';
     END IF;
 END//
 
@@ -558,7 +561,7 @@ FOR EACH ROW
 BEGIN
     IF NEW.report_type NOT IN ('ACTIVITY', 'USER', 'ORGANIZATION') THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid report type';
+        SET MESSAGE_TEXT = 'Message From Trigger: Invalid report type';
     END IF;
 END//
 
@@ -576,7 +579,7 @@ BEGIN
     
     IF duplicate_count > 0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Duplicate report detected within the last 24 hours';
+        SET MESSAGE_TEXT = 'Message From Trigger:  Duplicate report detected within the last 24 hours';
     END IF;
 END//
 
@@ -597,7 +600,7 @@ BEGIN
     
     IF object_exists = 0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Reported object does not exist';
+        SET MESSAGE_TEXT = 'Message From Trigger: Reported object does not exist';
     END IF;
 END//
 

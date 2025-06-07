@@ -24,7 +24,7 @@ public class ActivityDto implements AbstractModel {
   private String activityVenue;
   private Integer capacityLimit;
   private String activityType;
-  private ActivityCategory activityCategory;
+  private Long categoryId;
   private String activityDescription;
   private String imageUrl;
   private String activityLink;
